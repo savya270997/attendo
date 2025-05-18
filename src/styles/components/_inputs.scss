@@ -1,0 +1,22 @@
+@use "../base/variables" as *;
+@use "../base/mixins" as *;
+
+.input {
+  @include input-base;
+
+  &.error {
+    border-color: $secondary-color;
+    background-color: rgba($secondary-color, 0.05);
+  }
+
+  &::placeholder {
+    color: #888;
+  }
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: $text-color;
+}

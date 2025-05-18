@@ -1,0 +1,43 @@
+@use "../base/variables" as *;
+@use "../base/mixins" as *;
+
+.button {
+  @include box(0.75rem 1.25rem);
+  background-color: $primary-color;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: center;
+  transition: $transition;
+
+  &:hover {
+    background-color: darken($primary-color, 5%);
+  }
+
+  &.secondary {
+    background-color: $secondary-color;
+
+    &:hover {
+      background-color: darken($secondary-color, 5%);
+    }
+  }
+
+  &.tertiary {
+    background-color: $tertiary-color;
+
+    &:hover {
+      background-color: darken($tertiary-color, 5%);
+    }
+  }
+
+  &.outlined {
+    background: transparent;
+    border: 2px solid $primary-color;
+    color: $primary-color;
+
+    &:hover {
+      background-color: rgba($primary-color, 0.05);
+    }
+  }
+}

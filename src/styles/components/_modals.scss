@@ -1,0 +1,71 @@
+@use "../base/variables" as *;
+@use "../base/mixins" as *;
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba($text-color, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: #fff;
+  border-radius: $border-radius;
+  box-shadow: $shadow-medium;
+  width: 90%;
+  max-width: 400px;
+  padding: 2rem;
+  position: relative;
+  animation: slideIn 0.3s ease-out forwards;
+
+  &__header {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $primary-color;
+    margin-bottom: 1rem;
+  }
+
+  &__body {
+    font-size: 1rem;
+    color: $text-color;
+    margin-bottom: 1.5rem;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+
+  &__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: $text-color;
+    cursor: pointer;
+
+    &:hover {
+      color: $secondary-color;
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
