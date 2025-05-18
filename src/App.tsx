@@ -1,13 +1,24 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 import "./styles/main.scss";
-import LoginPage from "./components/LoginPage";
+import LoginRegister from "./components/LoginPage";
 import "./styles/LoginPage/LoginPage.scss";
 
-const App: React.FC = () => {
-  return <LoginPage />;
-};
+function App() {
+  const handleAuth = (
+    email: string,
+    password: string,
+    isLogin: boolean,
+    remember: boolean
+  ) => {
+    // For now, just log input
+    console.log({ email, password, isLogin, remember });
+  };
+
+  return (
+    <div className="App">
+      <LoginRegister onAuth={handleAuth} />
+    </div>
+  );
+}
 
 export default App;
