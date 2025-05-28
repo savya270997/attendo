@@ -17,6 +17,12 @@ const helpers = [
     phone: "9876512345",
     status: { am: true, pm: false },
   },
+  {
+    id: "3",
+    name: "Varnika Jain",
+    phone: "9876512345",
+    status: { am: true, pm: false },
+  },
 ];
 
 const Dashboard: React.FC = () => {
@@ -24,7 +30,7 @@ const Dashboard: React.FC = () => {
     <div className="dashboard">
       <Header />
       <div className="dashboard-container">
-        <h2 className="dashboard-title">Your Helpers</h2>
+        <h4 className="dashboard-title">Active Helpers</h4>
         <div className="helper-grid">
           {helpers.map((helper) => (
             <HelperCard key={helper.id} helper={helper} />

@@ -1,85 +1,135 @@
 @use "../base/variables" as *;
 @use "../base/mixins" as *;
-
 .helper-card {
-  background-color: white;
-  border-radius: $border-radius;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  padding: 1rem;
-  margin: 1rem 0;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 300px;
+  background: #fdfefe;
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: background 0.3s ease;
   position: relative;
-  overflow: hidden;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-  }
 
   .card-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
 
     .avatar {
-      background-color: $tertiary-color;
+      background: #194350;
       color: white;
+      width: 60px;
+      height: 60px;
+      font-size: 1.5rem;
       font-weight: bold;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
-      text-transform: uppercase;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
+
+    .menu-icon {
+      color: #666;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+  }
+
+  .card-body {
+    text-align: center;
+    margin-top: 1rem;
 
     .helper-name {
-      flex: 1;
-      margin-left: 1rem;
+      font-size: 1.2rem;
       font-weight: 600;
-      font-size: 1rem;
-      color: $text-color;
+      color: #2d354a;
+      margin-bottom: 0.3rem;
     }
 
-    .history-btn {
-      background: none;
-      border: none;
-      color: $primary-color;
+    .helper-phone {
       font-size: 0.9rem;
-      cursor: pointer;
+      color: #7c8097;
+      margin-bottom: 1rem;
+    }
 
-      &:hover {
-        color: $secondary-color;
+    .attendance-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+
+      .attendance-btn {
+        padding: 0.4rem 1rem;
+        border-radius: 2rem;
+        border: none;
+        font-size: 0.85rem;
+        cursor: pointer;
+        background-color: #e0e4ea;
+        color: #333;
+        transition: background 0.3s ease, color 0.3s ease;
+
+        &.present {
+          background: #194350;
+          color: white;
+        }
+
+        &:hover {
+          background: #9dbeb9;
+          color: #fff;
+        }
       }
     }
   }
 
-  .marking-buttons {
+  .card-footer {
+    margin-top: 1.5rem;
     display: flex;
-    justify-content: space-between;
-    margin-top: 1rem;
+    justify-content: center;
 
-    button {
-      flex: 1;
-      margin: 0 0.25rem;
-      padding: 0.75rem 1rem;
-      background-color: $primary-color;
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: $border-radius;
+    .history-icon {
+      font-size: 1.2rem;
+      color: #7c8097;
       cursor: pointer;
-      transition: $transition;
+      transition: color 0.3s ease;
 
       &:hover {
-        background-color: darken($primary-color, 10%);
-      }
-
-      &.marked {
-        background-color: $secondary-color;
+        color: #194350;
       }
     }
+  }
+
+  // Optional: dark theme toggle example
+  &.dark {
+    background: #31394d;
+
+    .avatar {
+      background: #fff;
+      color: #194350;
+    }
+
+    .helper-name,
+    .helper-phone,
+    .attendance-btn,
+    .history-icon {
+      color: #fff;
+    }
+
+    .attendance-btn {
+      background: #555;
+
+      &.present {
+        background: #ff8882;
+      }
+    }
+  }
+}
+
+// Responsive (optional)
+@media (max-width: 400px) {
+  .helper-card {
+    width: 100%;
   }
 }

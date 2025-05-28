@@ -13,9 +13,17 @@ const Header: React.FC = () => {
     window.location.reload();
   };
 
+  const goToDashboard = () => {
+    navigate("/dashboard");
+  };
+
   return (
     <header className="header">
-      <div className="header-left">
+      <div
+        className="header-left"
+        onClick={goToDashboard}
+        style={{ cursor: "pointer" }}
+      >
         <h1 className="app-name">Attendo</h1>
       </div>
 
