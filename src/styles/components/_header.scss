@@ -1,0 +1,51 @@
+@use "../base/variables" as *;
+@use "../base/mixins" as *;
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1rem;
+  background-color: $primary-color;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .logo {
+      height: 40px;
+    }
+
+    .app-name {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+
+    .user-name {
+      font-size: 1rem;
+    }
+
+    .logout-btn {
+      padding: 0.4rem 1rem;
+      background-color: $secondary-color;
+      border: none;
+      border-radius: $border-radius;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: darken($secondary-color, 10%);
+      }
+    }
+  }
+}

@@ -10,3 +10,59 @@ $shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.15);
 $transition: all 0.3s ease-in-out;
 
 $font-stack: "Inter", "Helvetica Neue", sans-serif;
+
+// _spacing.scss
+
+$spacing-unit: 0.5rem;
+
+@for $i from 0 through 10 {
+  // Margin
+  .m-#{$i} {
+    margin: $i * $spacing-unit !important;
+  }
+  .mt-#{$i} {
+    margin-top: $i * $spacing-unit !important;
+  }
+  .mr-#{$i} {
+    margin-right: $i * $spacing-unit !important;
+  }
+  .mb-#{$i} {
+    margin-bottom: $i * $spacing-unit !important;
+  }
+  .ml-#{$i} {
+    margin-left: $i * $spacing-unit !important;
+  }
+  .mx-#{$i} {
+    margin-left: $i * $spacing-unit !important;
+    margin-right: $i * $spacing-unit !important;
+  }
+  .my-#{$i} {
+    margin-top: $i * $spacing-unit !important;
+    margin-bottom: $i * $spacing-unit !important;
+  }
+
+  // Padding
+  .p-#{$i} {
+    padding: $i * $spacing-unit !important;
+  }
+  .pt-#{$i} {
+    padding-top: $i * $spacing-unit !important;
+  }
+  .pr-#{$i} {
+    padding-right: $i * $spacing-unit !important;
+  }
+  .pb-#{$i} {
+    padding-bottom: $i * $spacing-unit !important;
+  }
+  .pl-#{$i} {
+    padding-left: $i * $spacing-unit !important;
+  }
+  .px-#{$i} {
+    padding-left: $i * $spacing-unit !important;
+    padding-right: $i * $spacing-unit !important;
+  }
+  .py-#{$i} {
+    padding-top: $i * $spacing-unit !important;
+    padding-bottom: $i * $spacing-unit !important;
+  }
+}

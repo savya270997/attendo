@@ -1,57 +1,50 @@
 import React, { useState } from "react";
-import "./HelperCard.scss";
+import { FaHistory } from "react-icons/fa";
+import "../styles/components/_helperCard.scss";
 
-interface HelperCardProps {
-  name: string;
-  onMark: (period: "AM" | "PM") => void;
-  onHistory: () => void;
+interface HelperProps {
+  helper: {
+    id: string;
+    name: string;
+    phone: string;
+    status: { am: boolean; pm: boolean };
+  };
 }
 
-const HelperCard: React.FC<HelperCardProps> = ({ name, onMark, onHistory }) => {
-  const [marked, setMarked] = useState<{ AM: boolean; PM: boolean }>({
-    AM: false,
-    PM: false,
-  });
+const HelperCard: React.FC<HelperProps> = ({ helper }) => {
+  const [amPresent, setAmPresent] = useState(helper.status.am);
+  const [pmPresent, setPmPresent] = useState(helper.status.pm);
+  const [showHistory, setShowHistory] = useState(false);
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("");
-  };
-
-  const handleMark = (period: "AM" | "PM") => {
-    if (!marked[period]) {
-      setMarked((prev) => ({ ...prev, [period]: true }));
-      onMark(period);
-      (window as any).toast(`${period} leave marked for ${name}`, "success");
-    } else {
-      (window as any).toast(`${period} already marked`, "info");
-    }
-  };
+  const toggleAm = () => setAmPresent((prev) => !prev);
+  const togglePm = () => setPmPresent((prev) => !prev);
+  const handleHistoryClick = () => setShowHistory(true); // You can open a modal here
 
   return (
     <div className="helper-card">
-      <div className="card-header">
-        <div className="avatar">{getInitials(name)}</div>
-        <div className="helper-name">{name}</div>
-        <button className="history-btn" onClick={onHistory}>
-          History
-        </button>
+      <div className="helper-main">
+        <div className="helper-info">
+          <h4>{helper.name}</h4>
+          <p>{helper.phone}</p>
+        </div>
+        <div className="attendance-buttons">
+          <button
+            className={`am-btn ${amPresent ? "present" : ""}`}
+            onClick={toggleAm}
+          >
+            AM
+          </button>
+          <button
+            className={`pm-btn ${pmPresent ? "present" : ""}`}
+            onClick={togglePm}
+          >
+            PM
+          </button>
+        </div>
       </div>
-      <div className="marking-buttons">
-        <button
-          className={marked.AM ? "marked" : ""}
-          onClick={() => handleMark("AM")}
-        >
-          AM
-        </button>
-        <button
-          className={marked.PM ? "marked" : ""}
-          onClick={() => handleMark("PM")}
-        >
-          PM
-        </button>
+
+      <div className="history-section">
+        <FaHistory onClick={handleHistoryClick} className="history-icon" />
       </div>
     </div>
   );

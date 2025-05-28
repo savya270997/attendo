@@ -1,28 +1,16 @@
 import React, { useState } from "react";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  fetchSignInMethodsForEmail,
-} from "firebase/auth";
-import {
-  doc,
-  setDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
-} from "firebase/firestore";
-import { auth, db } from "../firebase";
+import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import { db } from "../firebase";
 import "../styles/LoginPage/LoginPage.scss";
+import logo from "../assets/logo.png";
 
 interface LoginRegisterProps {
-  onAuthSuccess: (uid: string) => void;
+  onAuthSuccess: (userId: string, userData: any) => void;
 }
 
 const LoginRegister: React.FC<LoginRegisterProps> = ({ onAuthSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
-  const [identifier, setIdentifier] = useState(""); // email or username input for login
+  const [identifier, setIdentifier] = useState(""); // username or email for login
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
@@ -31,272 +19,295 @@ const LoginRegister: React.FC<LoginRegisterProps> = ({ onAuthSuccess }) => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Helpers
+  const usersCollection = collection(db, "users");
+  const homesCollection = collection(db, "homes");
 
-  // Check if username is unique
+  // Helper: check if username is unique
   async function isUsernameUnique(username: string) {
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("username", "==", username));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.empty;
+    const q = query(usersCollection, where("username", "==", username));
+    const snapshot = await getDocs(q);
+    return snapshot.empty;
   }
 
-  // Check if phone is unique
+  // Helper: check if phone is unique
   async function isPhoneUnique(phone: string) {
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("phone", "==", phone));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.empty;
+    const q = query(usersCollection, where("phone", "==", phone));
+    const snapshot = await getDocs(q);
+    return snapshot.empty;
   }
 
-  // Check if home exists, if not add it
+  // Helper: add home if doesn't exist
   async function addHomeIfNotExists(homeName: string) {
-    if (!homeName) return;
-    const homesRef = collection(db, "homes");
-    const q = query(homesRef, where("name", "==", homeName));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) {
-      await addDoc(homesRef, { name: homeName.trim() });
+    if (!homeName.trim()) return;
+    const q = query(homesCollection, where("name", "==", homeName.trim()));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      await addDoc(homesCollection, { name: homeName.trim() });
     }
   }
 
-  // Login function (with username or email)
-  async function login(identifier: string, password: string) {
+  // Register user (directly to Firestore)
+  async function register() {
+    setError("");
     setLoading(true);
+
     try {
-      let emailToUse = identifier;
-
-      if (!identifier.includes("@")) {
-        // assume username, lookup email
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("username", "==", identifier));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-          alert("No user found with this username");
-          setLoading(false);
-          return;
-        }
-        emailToUse = querySnapshot.docs[0].data().email;
-      }
-
-      await signInWithEmailAndPassword(auth, emailToUse, password);
-      onAuthSuccess(auth.currentUser!.uid);
-    } catch (error: any) {
-      alert(error.message || "Login failed");
-    }
-    setLoading(false);
-  }
-
-  // Register function
-  async function register(
-    email: string,
-    password: string,
-    username: string,
-    fullName: string,
-    phone: string,
-    home: string
-  ) {
-    setLoading(true);
-    try {
-      // Validate username uniqueness
-      if (!(await isUsernameUnique(username))) {
-        alert("Username already taken. Please choose another.");
-        setLoading(false);
-        return;
-      }
-      // Validate phone uniqueness
-      if (!(await isPhoneUnique(phone))) {
-        alert("Phone number already registered.");
+      if (!email || !password || !username || !fullName || !phone || !home) {
+        setError("Please fill all required fields.");
         setLoading(false);
         return;
       }
 
-      // Check email uniqueness by checking sign-in methods for email
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-      if (methods.length > 0) {
-        alert("Email already registered.");
+      // Check username uniqueness
+      if (!(await isUsernameUnique(username.trim()))) {
+        setError("Username already taken.");
         setLoading(false);
         return;
       }
 
-      // Create user with Firebase auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const uid = userCredential.user.uid;
+      // Check phone uniqueness
+      if (!(await isPhoneUnique(phone.trim()))) {
+        setError("Phone number already registered.");
+        setLoading(false);
+        return;
+      }
+
+      // Check email uniqueness
+      const qEmail = query(usersCollection, where("email", "==", email.trim()));
+      const emailSnap = await getDocs(qEmail);
+      if (!emailSnap.empty) {
+        setError("Email already registered.");
+        setLoading(false);
+        return;
+      }
 
       // Add home if new
-      await addHomeIfNotExists(home);
+      const docRef = await addDoc(usersCollection, {
+        email: email.trim().toLowerCase(),
+        username: username.trim().toLowerCase(),
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        homes: [home.trim()],
+        password: password.trim(), // For now - but HASH in prod
+        createdAt: new Date().toISOString(),
+      });
 
-      // Save user profile to Firestore
-      await setDoc(doc(db, "users", uid), {
-        uid,
+      // Success — call parent callback with new user ID and data
+      onAuthSuccess(docRef.id, {
         email,
         username,
         fullName,
         phone,
-        homes: [home.trim()],
-        createdAt: new Date().toISOString(),
+        homes: [home],
       });
-
-      onAuthSuccess(uid);
-    } catch (error: any) {
-      alert(error.message || "Registration failed");
+    } catch (e) {
+      console.error(e);
+      setError("Registration failed. Try again.");
     }
+
     setLoading(false);
   }
 
-  // Form submit
+  // Login user by checking Firestore for matching username/email + password
+  async function login() {
+    setError("");
+    setLoading(true);
+
+    try {
+      if (!identifier || !password) {
+        setError("Please enter username/email and password.");
+        setLoading(false);
+        return;
+      }
+      const loginIdentifier = identifier.trim().toLowerCase();
+      const inputPassword = password.trim();
+
+      let q = query(usersCollection, where("email", "==", loginIdentifier));
+      let snap = await getDocs(q);
+
+      if (snap.empty) {
+        // Try username if no email match
+        q = query(usersCollection, where("username", "==", loginIdentifier));
+        snap = await getDocs(q);
+        if (snap.empty) {
+          setError("User not found.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      let userDocId = "";
+      let userData: any = null;
+
+      snap.forEach((doc) => {
+        userDocId = doc.id;
+        userData = doc.data();
+      });
+
+      if (!userData || userData.password !== inputPassword) {
+        setError("Incorrect password.");
+        setLoading(false);
+        return;
+      }
+
+      // Success - call parent
+      onAuthSuccess(userDocId, userData);
+      console.log("Login successful:", userData);
+    } catch (e) {
+      console.error(e);
+      setError("Login failed. Try again.");
+    }
+
+    setLoading(false);
+  }
+
+  // Handle form submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isLogin) {
-      if (!identifier || !password) {
-        alert("Please enter username/email and password.");
-        return;
-      }
-      await login(identifier.trim(), password);
+      await login();
     } else {
-      if (!email || !password || !username || !fullName || !phone || !home) {
-        alert("Please fill all required fields.");
-        return;
-      }
-      await register(
-        email.trim(),
-        password,
-        username.trim(),
-        fullName.trim(),
-        phone.trim(),
-        home.trim()
-      );
+      await register();
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="auth-form container">
+      <img
+        src={logo}
+        className="logo"
+        style={{ height: "10em", padding: "0em" }}
+      ></img>{" "}
+      <h3>Welcome to Attendo!</h3>
       <h2 className="text-primary text-center mb-5">
         {isLogin ? "Login" : "Register"}
       </h2>
-
-      {/* Login input - username or email */}
-      {isLogin && (
+      {error && <p className="error-msg">{error}</p>}
+      {isLogin ? (
         <div className="form-group mb-4">
           <label htmlFor="identifier" className="label">
             Username or Email
           </label>
-          <input
-            type="text"
-            id="identifier"
-            className="input-text"
-            placeholder="Username or email"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            required
-          />
+          <div className="field">
+            <input
+              type="text"
+              id="identifier"
+              className="input-field"
+              placeholder="Username or email"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              required
+            />
+          </div>
         </div>
-      )}
-
-      {/* Register inputs */}
-      {!isLogin && (
+      ) : (
         <>
           <div className="form-group mb-4">
             <label htmlFor="email" className="label">
               Email
             </label>
-            <input
-              type="email"
-              id="email"
-              className="input-text"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <div className="field">
+              {" "}
+              <input
+                type="email"
+                id="email"
+                className="input-field"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <div className="form-group mb-4">
             <label htmlFor="username" className="label">
               Username
             </label>
-            <input
-              type="text"
-              id="username"
-              className="input-text"
-              placeholder="Choose a username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
+            <div className="field">
+              <input
+                type="text"
+                id="username"
+                className="input-field"
+                placeholder="Choose a username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <div className="form-group mb-4">
             <label htmlFor="fullName" className="label">
               Full Name
             </label>
-            <input
-              type="text"
-              id="fullName"
-              className="input-text"
-              placeholder="Your full name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-            />
+            <div className="field">
+              <input
+                type="text"
+                id="fullName"
+                className="input-field"
+                placeholder="Your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <div className="form-group mb-4">
             <label htmlFor="phone" className="label">
               Phone Number
             </label>
-            <input
-              type="tel"
-              id="phone"
-              className="input-text"
-              placeholder="+123 456 7890"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
+            <div className="field">
+              <input
+                type="tel"
+                id="phone"
+                className="input-field"
+                placeholder="+123 456 7890"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <div className="form-group mb-5">
             <label htmlFor="home" className="label">
               Home (Search/Add)
             </label>
-            <input
-              type="text"
-              id="home"
-              className="input-text"
-              placeholder="Search or add your home"
-              value={home}
-              onChange={(e) => setHome(e.target.value)}
-              required
-            />
+            <div className="field">
+              <input
+                type="text"
+                id="home"
+                className="input-field"
+                placeholder="Search or add your home"
+                value={home}
+                onChange={(e) => setHome(e.target.value)}
+                required
+              />
+            </div>
           </div>
         </>
       )}
-
-      {/* Password input */}
       <div className="form-group mb-4" style={{ position: "relative" }}>
         <label htmlFor="password" className="label">
           Password
         </label>
-        <input
-          type="password"
-          id="password"
-          className="input-text"
-          placeholder="Enter your password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="field">
+          <input
+            type="password"
+            id="password"
+            className="input-field"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
       </div>
-
-      {/* Remember me */}
       <div className="form-group checkbox-container mb-5">
         <input
           type="checkbox"
@@ -309,8 +320,6 @@ const LoginRegister: React.FC<LoginRegisterProps> = ({ onAuthSuccess }) => {
           Remember Me
         </label>
       </div>
-
-      {/* Submit button */}
       <button type="submit" className="button" disabled={loading}>
         {loading
           ? isLogin
@@ -320,18 +329,17 @@ const LoginRegister: React.FC<LoginRegisterProps> = ({ onAuthSuccess }) => {
           ? "Login"
           : "Register"}
       </button>
-
-      {/* Toggle login/register */}
       <p className="text-center mt-4">
         {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-        <button
-          type="button"
-          className="button secondary"
-          onClick={() => setIsLogin(!isLogin)}
-          disabled={loading}
+        <a
+          href="#"
+          onClick={() => {
+            setError("");
+            setIsLogin(!isLogin);
+          }}
         >
           {isLogin ? "Register" : "Login"}
-        </button>
+        </a>
       </p>
     </form>
   );
